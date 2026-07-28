@@ -1,0 +1,9 @@
+# CONGA-SA7 + CONGA-SEVAL
+targets:
+ main:
+    resources:
+      RemotePlace:
+        name: conga-sa7
+    drivers:
+      SSHDriver:
+        connection_timeout: 120.0
