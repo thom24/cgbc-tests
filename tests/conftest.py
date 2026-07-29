@@ -1,3 +1,6 @@
+import os
+import re
+import subprocess
 import pytest
 import time
 
@@ -21,6 +24,12 @@ def session_target(target, request):
 	ssh = target.get_driver("SSHDriver")
 
 	if kernel is not None:
+		kernel = os.path.realpath(kernel)
+
+		result = subprocess.run(["file", kernel], capture_output=True, text=True, check=True)
+		m = re.search(r"version\s+(\S+)", result.stdout)
+		kernel_version_from_image = m.group(1) if m else None
+
 		ssh.run_check("reboot")
 		target.deactivate(ssh)
 		target.activate(ssh)
@@ -35,6 +44,11 @@ def session_target(target, request):
 		cmdline = "".join(ssh.run_check("cat /proc/cmdline")).strip()
 		if "BOOT_IMAGE=/bzImage.test" not in cmdline:
 			raise RuntimeError(f"test kernel not booted: /proc/cmdline={cmdline}")
+
+		uname_r = "".join(ssh.run_check("uname -r")).strip()
+		if kernel_version_from_image is not None:
+			assert uname_r == kernel_version_from_image, \
+				f"Running kernel version '{uname_r}' does not match image version '{kernel_version_from_image}'"
 
 	yield target
 
