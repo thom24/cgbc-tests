@@ -17,6 +17,8 @@ def test_virtual_storage_present(session_target, device):
 	ssh = session_target.get_driver("SSHDriver")
 	stdout = ssh.run_check(f"ls /sys/bus/i2c/devices/i2c-cgbc-{device}")
 	assert "name" in "".join(stdout), f"Virtual storage device {device} not found"
+	stdout = ssh.run_check(f"ls /sys/bus/nvmem/devices/cgbc-{device}*")
+	assert "nvmem" in "".join(stdout), f"Virtual storage device {device} not found"
 
 
 @pytest.mark.parametrize("device", virtual_storage_devices)
