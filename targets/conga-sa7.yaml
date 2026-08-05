@@ -7,3 +7,8 @@ targets:
     drivers:
       SSHDriver:
         connection_timeout: 120.0
+    hwmon:
+      temp: [ 4, 6, 11 ]
+      in: [ 1 ]
+      curr: [ 1 ]
+      fan: [ ]
