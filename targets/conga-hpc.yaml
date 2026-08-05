@@ -1,0 +1,14 @@
+# conga-HPC + conga-FEVAL
+targets:
+ main:
+    resources:
+      RemotePlace:
+        name: conga-hpc
+    drivers:
+      SSHDriver:
+        connection_timeout: 120.0
+    hwmon:
+      temp: [ 1, 4, 6, 11 ]
+      in: [ 1 ]
+      curr: [ 1 ]
+      fan: [ 1, 2 ]
