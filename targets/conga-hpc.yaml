@@ -12,3 +12,10 @@ targets:
       in: [ 1 ]
       curr: [ 1 ]
       fan: [ 1, 2 ]
+      in_ranges:
+        1: [ 11500, 12500 ]
+      curr_ranges:
+        1: [ 400, 600 ]
+      fan_ranges:
+        1: [ 2000, 3000 ]
+        2: [ 0, 0 ]
