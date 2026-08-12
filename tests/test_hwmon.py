@@ -65,6 +65,35 @@ hwmon_fan_labels = [
 ]
 
 
+# Valid physical ranges (min, max) for each sensor type. Units match the hwmon
+# sysfs attributes:
+#   temp_input: millidegrees C
+#   in_input:   millivolts
+#   curr_input: milliamps
+#   fan_input:  RPM
+# Voltage sensors (in) have label-specific ranges, indexed 0-based to match
+# hwmon_in_labels / the existing channel mapping (in0, in1, ...).
+hwmon_range = {
+	'temp': (30000, 100000), # 30°C - 100°C
+	'curr': (500, 3000),     # 500mA - 3000mA
+	'fan': (0, 3000),        # 0RPM - 3000RPM
+	'in': {
+		1: (4500, 5500),   # DC Runtime Voltage: 4V5 - 5V5
+	},
+}
+
+
+def hwmon_get_range(prefix, idx):
+	if prefix == 'in':
+		return hwmon_range['in'].get(idx, (-1, -1)) # Fallback (-1 -1) so test will fail
+	return hwmon_range[prefix]
+
+
+def hwmon_read_input(ssh, hwmon_path, prefix, idx):
+	stdout = ssh.run_check(f"cat {hwmon_path}/{prefix}{idx}_input")
+	return int("".join(stdout).strip())
+
+
 def hwmon_load_hwmon_config(config_path):
 	if not config_path or not os.path.exists(config_path):
 		return {}
@@ -127,8 +156,9 @@ def test_hwmon_temp_input(session_target, hwmon_path, hwmon_config, idx):
 	if idx not in hwmon_config['temp']:
 		pytest.skip(f"temp{idx} not available on this target")
 	ssh = session_target.get_driver("SSHDriver")
-	stdout = ssh.run_check(f"cat {hwmon_path}/temp{idx}_input")
-	assert int("".join(stdout).strip()) >= 0, f"temp{idx}_input is invalid"
+	value = hwmon_read_input(ssh, hwmon_path, "temp", idx)
+	lo, hi = hwmon_get_range("temp", idx)
+	assert lo <= value <= hi, f"temp{idx}_input value {value} outside valid range [{lo}, {hi}]"
 
 
 @pytest.mark.parametrize("idx,expected", [(i, l) for i, l in enumerate(hwmon_in_labels, start = 0)], ids=[l.replace(" ", "_") for l in hwmon_in_labels])
@@ -145,8 +175,9 @@ def test_hwmon_in_input(session_target, hwmon_path, hwmon_config, idx):
 	if idx not in hwmon_config['in']:
 		pytest.skip(f"in{idx} not available on this target")
 	ssh = session_target.get_driver("SSHDriver")
-	stdout = ssh.run_check(f"cat {hwmon_path}/in{idx}_input")
-	assert int("".join(stdout).strip()) >= 0, f"in{idx}_input is invalid"
+	value = hwmon_read_input(ssh, hwmon_path, "in", idx)
+	lo, hi = hwmon_get_range("in", idx)
+	assert lo <= value <= hi, f"in{idx}_input value {value} outside valid range [{lo}, {hi}]"
 
 
 @pytest.mark.parametrize("idx,expected", [(i, l) for i, l in enumerate(hwmon_curr_labels, start = 1)], ids = [l.replace(" ", "_") for l in hwmon_curr_labels])
@@ -163,8 +194,9 @@ def test_hwmon_curr_input(session_target, hwmon_path, hwmon_config, idx):
 	if idx not in hwmon_config['curr']:
 		pytest.skip(f"curr{idx} not available on this target")
 	ssh = session_target.get_driver("SSHDriver")
-	stdout = ssh.run_check(f"cat {hwmon_path}/curr{idx}_input")
-	assert int("".join(stdout).strip()) >= 0, f"curr{idx}_input is invalid"
+	value = hwmon_read_input(ssh, hwmon_path, "curr", idx)
+	lo, hi = hwmon_get_range("curr", idx)
+	assert lo <= value <= hi, f"curr{idx}_input value {value} outside valid range [{lo}, {hi}]"
 
 
 @pytest.mark.parametrize("idx,expected", [(i, l) for i, l in enumerate(hwmon_fan_labels, start = 1)], ids = [l.replace(" ", "_") for l in hwmon_fan_labels])
@@ -181,8 +213,9 @@ def test_hwmon_fan_input(session_target, hwmon_path, hwmon_config, idx):
 	if idx not in hwmon_config['fan']:
 		pytest.skip(f"fan{idx} not available on this target")
 	ssh = session_target.get_driver("SSHDriver")
-	stdout = ssh.run_check(f"cat {hwmon_path}/fan{idx}_input")
-	assert int("".join(stdout).strip()) >= 0, f"fan{idx}_input is invalid"
+	value = hwmon_read_input(ssh, hwmon_path, "fan", idx)
+	lo, hi = hwmon_get_range("fan", idx)
+	assert lo <= value <= hi, f"fan{idx}_input value {value} outside valid range [{lo}, {hi}]"
 
 
 def test_hwmon_only_defined_temp_sensors(session_target, hwmon_path, hwmon_config):
