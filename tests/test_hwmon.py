@@ -5,59 +5,59 @@ import yaml
 
 hwmon_temp_labels = [
 	"CPU Temperature",
-	"Box Temperature",
+	"Case Temperature",
 	"Ambient Temperature",
-	"Board Temperature",
-	"Carrier Temperature",
-	"Chipset Temperature",
-	"Video Temperature",
+	"CPU Board Temperature",
+	"Carrier Board Temperature",
+	"System Chipset Temperature",
+	"Video Controller/Board Temperature",
 	"Other Temperature",
-	"TOPDIMM_0 Temperature",
-	"BOTTOMDIMM_0 Temperature",
-	"Board Alt Temperature",
-	"TOPDIMM_1 Temperature",
-	"TOPDIMM_2 Temperature",
-	"TOPDIMM_3 Temperature",
-	"TOPDIMM_4 Temperature",
-	"TOPDIMM_5 Temperature",
-	"TOPDIMM_6 Temperature",
-	"TOPDIMM_7 Temperature",
-	"BOTTOMDIMM_1 Temperature",
+	"Top DIMM 0 Temperature",
+	"Bottom DIMM 0 Temperature",
+	"Alternate Board Temperature",
+	"Top DIMM 1 Temperature",
+	"Top DIMM 2 Temperature",
+	"Top DIMM 3 Temperature",
+	"Top DIMM 4 Temperature",
+	"Top DIMM 5 Temperature",
+	"Top DIMM 6 Temperature",
+	"Top DIMM 7 Temperature",
+	"Bottom DIMM 1 Temperature",
 ]
 
 # NOTE:
 # Channel base is 0 for hwmon_in/hwmon_intrusion, and 1 for everything else:
-# in0: "CPU Voltage", in1: "DC Runtime Voltage" ...
-# temp1: "CPU Temperature", temp2: "Box Temperature" ...
+# in0: "CPU Core Voltage", in1: "DC Runtime Voltage" ...
+# temp1: "CPU Temperature", temp2: "Case Temperature" ...
 # Can be confusing, but it is handled by the tests.
 # Be careful when defining sensors in target yaml file.
 hwmon_in_labels = [
-	"CPU Voltage",
+	"CPU Core Voltage",
 	"DC Runtime Voltage",
 	"DC Standby Voltage",
 	"CMOS Battery Voltage",
-	"Battery Voltage",
+	"Battery Supply Voltage",
 	"AC Voltage",
 	"Other Voltage",
-	"5V Voltage",
+	"5V Runtime Voltage",
 	"5V Standby Voltage",
-	"3V3 Voltage",
+	"3V3 Runtime Voltage",
 	"3V3 Standby Voltage",
 	"VCore A Voltage",
 	"VCore B Voltage",
-	"12V Voltage",
+	"12V Runtime Voltage",
 	"12V Standby Voltage",
 ]
 
 hwmon_curr_labels = [
-	"DC Current",
-	"5V Current",
-	"12V Current",
+	"DC Runtime Current",
+	"5V Runtime Current",
+	"12V Runtime Current",
 ]
 
 hwmon_fan_labels = [
 	"CPU Fan",
-	"Box Fan",
+	"Case Fan",
 	"Ambient Fan",
 	"Chipset Fan",
 	"Video Fan",
