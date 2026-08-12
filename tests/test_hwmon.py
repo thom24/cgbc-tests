@@ -65,28 +65,17 @@ hwmon_fan_labels = [
 ]
 
 
-# Valid physical ranges (min, max) for each sensor type. Units match the hwmon
-# sysfs attributes:
-#   temp_input: millidegrees C
-#   in_input:   millivolts
-#   curr_input: milliamps
-#   fan_input:  RPM
-# Voltage sensors (in) have label-specific ranges, indexed 0-based to match
-# hwmon_in_labels / the existing channel mapping (in0, in1, ...).
-hwmon_range = {
-	'temp': (30000, 100000), # 30°C - 100°C
-	'curr': (500, 3000),     # 500mA - 3000mA
-	'fan': (0, 3000),        # 0RPM - 3000RPM
-	'in': {
-		1: (4500, 5500),   # DC Runtime Voltage: 4V5 - 5V5
-	},
-}
+# Valid physical range (min, max) for the temp sensor. Units match the hwmon
+# sysfs attributes (temp_input: millidegrees C).
+# in/curr/fan ranges are board-specific and MUST be defined per-target in the
+# target yaml (in_ranges/curr_ranges/fan_ranges). Only temp is hardcoded here.
+hwmon_temp_range = (30000, 100000)  # 30°C - 100°C
 
 
-def hwmon_get_range(prefix, idx):
-	if prefix == 'in':
-		return hwmon_range['in'].get(idx, (-1, -1)) # Fallback (-1 -1) so test will fail
-	return hwmon_range[prefix]
+def hwmon_get_range(hwmon_config, prefix, idx):
+	if prefix == 'temp':
+		return hwmon_temp_range
+	return hwmon_config[f'{prefix}_ranges'].get(idx, None)
 
 
 def hwmon_read_input(ssh, hwmon_path, prefix, idx):
@@ -110,11 +99,17 @@ def hwmon_config(request):
 	_in = hwmon.get('in') if 'in' in hwmon else list(range(0, len(hwmon_in_labels)))
 	_curr = hwmon.get('curr') if 'curr' in hwmon else list(range(1, len(hwmon_curr_labels) + 1))
 	_fan = hwmon.get('fan') if 'fan' in hwmon else list(range(1, len(hwmon_fan_labels) + 1))
+	_in_ranges = {int(k): tuple(v) for k, v in (hwmon.get('in_ranges') or {}).items()}
+	_curr_ranges = {int(k): tuple(v) for k, v in (hwmon.get('curr_ranges') or {}).items()}
+	_fan_ranges = {int(k): tuple(v) for k, v in (hwmon.get('fan_ranges') or {}).items()}
 	return {
 		'temp': _temp,
 		'in': _in,
 		'curr': _curr,
 		'fan': _fan,
+		'in_ranges': _in_ranges,
+		'curr_ranges': _curr_ranges,
+		'fan_ranges': _fan_ranges,
 	}
 
 
@@ -157,7 +152,7 @@ def test_hwmon_temp_input(session_target, hwmon_path, hwmon_config, idx):
 		pytest.skip(f"temp{idx} not available on this target")
 	ssh = session_target.get_driver("SSHDriver")
 	value = hwmon_read_input(ssh, hwmon_path, "temp", idx)
-	lo, hi = hwmon_get_range("temp", idx)
+	lo, hi = hwmon_get_range(hwmon_config, "temp", idx)
 	assert lo <= value <= hi, f"temp{idx}_input value {value} outside valid range [{lo}, {hi}]"
 
 
@@ -175,8 +170,10 @@ def test_hwmon_in_input(session_target, hwmon_path, hwmon_config, idx):
 	if idx not in hwmon_config['in']:
 		pytest.skip(f"in{idx} not available on this target")
 	ssh = session_target.get_driver("SSHDriver")
+	range_ = hwmon_get_range(hwmon_config, "in", idx)
+	assert range_ is not None, f"in{idx}_input has no configured range on this board"
+	lo, hi = range_
 	value = hwmon_read_input(ssh, hwmon_path, "in", idx)
-	lo, hi = hwmon_get_range("in", idx)
 	assert lo <= value <= hi, f"in{idx}_input value {value} outside valid range [{lo}, {hi}]"
 
 
@@ -194,8 +191,10 @@ def test_hwmon_curr_input(session_target, hwmon_path, hwmon_config, idx):
 	if idx not in hwmon_config['curr']:
 		pytest.skip(f"curr{idx} not available on this target")
 	ssh = session_target.get_driver("SSHDriver")
+	range_ = hwmon_get_range(hwmon_config, "curr", idx)
+	assert range_ is not None, f"curr{idx}_input has no configured range on this board"
+	lo, hi = range_
 	value = hwmon_read_input(ssh, hwmon_path, "curr", idx)
-	lo, hi = hwmon_get_range("curr", idx)
 	assert lo <= value <= hi, f"curr{idx}_input value {value} outside valid range [{lo}, {hi}]"
 
 
@@ -213,8 +212,10 @@ def test_hwmon_fan_input(session_target, hwmon_path, hwmon_config, idx):
 	if idx not in hwmon_config['fan']:
 		pytest.skip(f"fan{idx} not available on this target")
 	ssh = session_target.get_driver("SSHDriver")
+	range_ = hwmon_get_range(hwmon_config, "fan", idx)
+	assert range_ is not None, f"fan{idx}_input has no configured range on this board"
+	lo, hi = range_
 	value = hwmon_read_input(ssh, hwmon_path, "fan", idx)
-	lo, hi = hwmon_get_range("fan", idx)
 	assert lo <= value <= hi, f"fan{idx}_input value {value} outside valid range [{lo}, {hi}]"
 
 
