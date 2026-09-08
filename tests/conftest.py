@@ -1,8 +1,9 @@
 import os
+import pytest
 import re
 import subprocess
-import pytest
 import time
+import yaml
 
 from labgrid.protocol import PowerProtocol
 from labgrid.protocol import CommandProtocol
@@ -15,6 +16,10 @@ def pytest_addoption(parser):
 		required=False,
 		help="path to the kernel image to deploy to /boot/zImage.test, if not set we assume that kernel to test is already running",
 	)
+
+def pytest_configure(config):
+	if "LG_ENV" not in os.environ and config.option.lg_env:
+		os.environ["LG_ENV"] = config.option.lg_env
 
 
 @pytest.fixture(scope="session")

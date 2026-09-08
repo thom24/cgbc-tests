@@ -16,3 +16,11 @@ targets:
         1: [ 4800, 5200 ]
       curr_ranges:
         1: [ 1000, 2000 ]
+    i2c:
+      buses:
+        "cgbc-i2c0":
+          devices: [ 0x1a, 0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x71 ]
+        "cgbc-i2cv":
+          devices: [ 0x40, 0x48, 0x50, 0x58, 0x60, 0x68, 0x70 ]
+        "cgbc-ddc0":
+          devices: []
