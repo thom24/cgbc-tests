@@ -116,9 +116,9 @@ def hwmon_config(request):
 @pytest.fixture(scope="session")
 def hwmon_path(session_target):
 	ssh = session_target.get_driver("SSHDriver")
-	stdout = ssh.run_check("ls /sys/devices/platform/cgbc/cgbc-hwmon/hwmon/")
-	hwmon_dev = "".join(stdout).strip().split()[0]
-	return f"/sys/devices/platform/cgbc/cgbc-hwmon/hwmon/{hwmon_dev}"
+	stdout = ssh.run_check("realpath /sys/devices/platform/cgbc/cgbc-hwmon.*/hwmon/hwmon*/")
+	hwmon_path = "".join(stdout).strip().split()[0]
+	return hwmon_path
 
 
 def hwmon_available_indices(ssh, hwmon_path, prefix):
