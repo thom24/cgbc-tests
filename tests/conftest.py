@@ -22,6 +22,12 @@ def pytest_configure(config):
 		os.environ["LG_ENV"] = config.option.lg_env
 
 
+def reboot(target, ssh):
+	ssh.run_check("reboot")
+	target.deactivate(ssh)
+	target.activate(ssh)
+
+
 @pytest.fixture(scope="session")
 def session_target(target, request):
 	kernel = request.config.getoption("--kernel-image")
@@ -35,16 +41,10 @@ def session_target(target, request):
 		m = re.search(r"version\s+(\S+)", result.stdout)
 		kernel_version_from_image = m.group(1) if m else None
 
-		ssh.run_check("reboot")
-		target.deactivate(ssh)
-		target.activate(ssh)
-
 		ssh.put(kernel, "/boot/bzImage.test")
 		ssh.run_check("grub-reboot 1")
 
-		ssh.run_check("reboot")
-		target.deactivate(ssh)
-		target.activate(ssh)
+		reboot(target, ssh)
 
 		cmdline = "".join(ssh.run_check("cat /proc/cmdline")).strip()
 		if "BOOT_IMAGE=/bzImage.test" not in cmdline:
