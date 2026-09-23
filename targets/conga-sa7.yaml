@@ -9,15 +9,16 @@ targets:
         connection_timeout: 120.0
     gpio:
       lines: 14
-      valid_mask: [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+      valid_mask: [ 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1 ]
       loopbacks:
         0: 1
         2: 3
-        4: 5
+# GPIO 4-5 configured in alternate function, cannot be used as GPIO, see valid_mask
+#       4: 5
         6: 7
         8: 9
         10: 11
-# loopback 12-13 doesn't work, shall be investigated
+# GPIO 12-13 disabled on SEVAL (SW3)
 #       12: 13
     hwmon:
       temp: [ 4, 6, 11 ]
